@@ -1,0 +1,7 @@
+README.md
+setup.py
+ligo_environment.egg-info/PKG-INFO
+ligo_environment.egg-info/SOURCES.txt
+ligo_environment.egg-info/dependency_links.txt
+ligo_environment.egg-info/requires.txt
+ligo_environment.egg-info/top_level.txt
