@@ -16,6 +16,13 @@ import numpy as np
 from scipy.integrate import ode
 sin = np.sin
 cos = np.cos
+import random
+
+import sys
+import pathlib
+directory = pathlib.Path(__file__).parent.absolute()
+sys.path.insert(1, str(directory)+'/utils')
+import noise
 
 class TwoStage1(gym.Env):
 	metadata = {
@@ -23,11 +30,11 @@ class TwoStage1(gym.Env):
 		'video.frames_per_second' : 50
 	}
 
-	def __init__(self):
+	def __init__(self, seismic=None):
 		self.g = -9.81 # gravity constant
 		self.m0 = 1.0 # mass of cart
 		self.m1 = 0.5 # mass of pole 1
-		self.m2 = 0.5 # mass of pole 2
+		self.m2 = 0.5# mass of pole 2
 		self.L1 = 1 # length of pole 1
 		self.L2 = 1 # length of pole 2
 		self.l1 = self.L1/2 # distance from pivot point to center of mass
@@ -36,12 +43,17 @@ class TwoStage1(gym.Env):
 		self.I2 = self.m2*(self.L2^2)/12 # moment of inertia of pole 2 w.r.t its center of mass
 		self.tau = 0.02  # seconds between state updates
 		self.counter = 0
+		self.seismic = seismic
+		if seismic is None:
+			self.seismic = noise.generate_noise(fs=4000, amplify=100)
+		# self.seismic = noise.generate_noise()
 
 		# Angle at which to fail the episode
 		#self.theta_threshold_radians = 12 * 2 * math.pi / 360
 		# # (never fail the episode based on the angle)
 		self.theta_threshold_radians = 100000 * 2 * math.pi / 360
 		self.x_threshold = 2.4
+		self.x2_threshold = 1
 
 		# Angle limit set to 2 * theta_threshold_radians so failing observation is still within bounds
 		high = np.array([
@@ -50,7 +62,7 @@ class TwoStage1(gym.Env):
 			self.theta_threshold_radians * 2,
 			np.finfo(np.float32).max])
 
-		self.action_space = spaces.Discrete(2)
+		self.action_space = spaces.Discrete(3)
 		self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
 		self.viewer = None
@@ -62,9 +74,10 @@ class TwoStage1(gym.Env):
 		self.display = display 
 
 	def step(self, action):
-		print(action)
 		assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
-		u = action
+		u = 0
+		# u = noise.sample_seismic(self.seismic, self.counter)
+		u = noise.sample_seismic_derivative(self.seismic, self.counter)
 		self.counter += 1
 		
 		# (state_dot = func(state))
@@ -115,13 +128,20 @@ class TwoStage1(gym.Env):
 		solver.set_initial_value(self.state, t0)
 		solver.integrate(self.tau)
 		state=solver.y
+		action = action -1 # or use AVAIL_TORQUE = [-1., 0., +1]
+		# state[4] += self.tau*action #update theta_dot with the torque
+		# state[0] = noise.sample_seismic(self.seismic, self.counter)
+		# # state[3] = noise.sample_seismic(self.seismic, self.counter)
 		x = state.item(0)
 		theta = state.item(1)
 		phi = state.item(2)
 		self.state = state
+
+		x1 = self.L1 * math.sin(abs(theta-math.pi)) 	
+		x2 = x1 + (self.L2 * math.sin(abs(theta-math.pi)))	
 		
-		done =  x < -self.x_threshold \
-				or x > self.x_threshold \
+		done =  abs(x) > self.x_threshold \
+				or abs(x2) > self.x2_threshold \
 				or self.counter > 1000 \
 				# or theta > 90*2*np.pi/360 \
 				# or theta < -90*2*np.pi/360 
@@ -135,7 +155,8 @@ class TwoStage1(gym.Env):
 		return self.state, reward, done, {}
 
 	def reset(self):
-		self.state = np.matrix([[0],[np.random.uniform(-0.1,0.1)],[0],[0],[0],[0]])
+		# self.state = np.matrix([[0],[np.random.uniform(-0.1,0.1)],[0],[0],[0],[0]])
+		self.state = np.matrix([[0],[math.pi],[math.pi],[0],[0],[0]])
 		self.counter = 0
 		return self.state
 
@@ -218,3 +239,8 @@ def normalize_angle(angle):
 		normalized_angle = normalized_angle - 2*np.pi
 	normalized_angle = abs(normalized_angle)
 	return normalized_angle
+
+
+# # Add noise to the force action
+# if self.torque_noise_max > 0:
+#     torque += self.np_random.uniform(-self.torque_noise_max, self.torque_noise_max)
