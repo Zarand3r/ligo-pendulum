@@ -129,7 +129,7 @@ class TwoStage1(gym.Env):
 		solver.integrate(self.tau)
 		state=solver.y
 		action = action -1 # or use AVAIL_TORQUE = [-1., 0., +1]
-		# state[4] += self.tau*action #update theta_dot with the torque
+		state[4] += self.tau*action #update theta_dot with the torque
 		# state[0] = noise.sample_seismic(self.seismic, self.counter)
 		# # state[3] = noise.sample_seismic(self.seismic, self.counter)
 		x = state.item(0)
