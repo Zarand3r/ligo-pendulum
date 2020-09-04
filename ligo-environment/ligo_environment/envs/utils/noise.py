@@ -2,7 +2,6 @@
 
 import numpy as np
 import scipy.signal as sig
-from scipy import interpolate
 
 def generate_noise(fs=1024, f1=15, f2=100, amplify=1):
     bg_raw = np.random.randn(1000)

@@ -45,8 +45,8 @@ class TwoStage1(gym.Env):
 		self.counter = 0
 		self.seismic = seismic
 		if seismic is None:
-			self.seismic = noise.generate_noise(fs=4000, amplify=100)
-		# self.seismic = noise.generate_noise()
+			# self.seismic = noise.generate_noise(fs=4000, amplify=100)
+			self.seismic = noise.generate_noise()
 
 		# Angle at which to fail the episode
 		#self.theta_threshold_radians = 12 * 2 * math.pi / 360
@@ -75,7 +75,7 @@ class TwoStage1(gym.Env):
 
 	def step(self, action):
 		assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
-		u = 0
+		# u = 0
 		# u = noise.sample_seismic(self.seismic, self.counter)
 		u = noise.sample_seismic_derivative(self.seismic, self.counter)
 		self.counter += 1
@@ -137,8 +137,9 @@ class TwoStage1(gym.Env):
 		phi = state.item(2)
 		self.state = state
 
-		x1 = self.L1 * math.sin(abs(theta-math.pi)) 	
-		x2 = x1 + (self.L2 * math.sin(abs(theta-math.pi)))	
+		x1 = self.L1 * math.sin(theta-math.pi) 	
+		x2 = x1 + (self.L2 * math.sin(theta-math.pi))	
+		print(x2)
 		
 		done =  abs(x) > self.x_threshold \
 				or abs(x2) > self.x2_threshold \
@@ -147,11 +148,10 @@ class TwoStage1(gym.Env):
 				# or theta < -90*2*np.pi/360 
 		done = bool(done)
 
-		cost = 10*normalize_angle(theta) + \
-				10*normalize_angle(phi)
+		cost = abs(x2)
 				
 		reward = -cost
-		
+
 		return self.state, reward, done, {}
 
 	def reset(self):

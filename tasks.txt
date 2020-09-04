@@ -1,0 +1,9 @@
+Give the cart some mass, but make sure this doesnt affect the effect of u from seismic (change the math to replace the mass with 1 for that specific part)
+Add friction
+
+Simplified learning task:
+=========================
+Start with the one_stage pendulum actuated
+Use a simple seismic signal
+See which neural network architecture can train to balance
+See what info to feed in. Right now, it gets the state as the input.

@@ -61,7 +61,7 @@ def run_two_stage(signal=None):
 def run_two_stage1(signal=None):
 	env = gym.make('ligo_environment:two-stage-v1')
 	env.reset()
-	for t in range(200):
+	for t in range(1000):
 	    env.render()
 	    if signal is None:
 	    	action = env.action_space.sample()
