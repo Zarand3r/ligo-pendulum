@@ -12,7 +12,3 @@ register(
     id='two-stage-v0',
     entry_point='ligo_environment.envs:TwoStage',
 )
-register(
-    id='two-stage-v1',
-    entry_point='ligo_environment.envs:TwoStage1',
-)
