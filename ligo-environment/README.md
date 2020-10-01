@@ -6,3 +6,5 @@ Each run of the environment has a randomly generated seismic noise using noise.p
 The action space is the controlling torque on the actuated pendulum (the first pendulum). Actions of 0, 1, 2 correspond to torques of -1, 0, +1 respectively.
 The friction parameter 
 
+I attempted to implement reinforcement training in the controller module.
+
